@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "VkvpmXP49dLOutUBLZI57CoG/6IsxQj8v2hPUQvq8qbn1bbnbtGPbLqZLeCgfeERKE9wQUggbmyecDd2Z3jM4A==",
+  "success": true,
+  "projectFilePath": "/home/justin/Documents/GitHub/Munita/Munita.csproj",
+  "expectedPackageFiles": [
+    "/home/justin/.nuget/packages/raylib-cs/4.0.0.1/raylib-cs.4.0.0.1.nupkg.sha512",
+    "/home/justin/.nuget/packages/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg.sha512",
+    "/home/justin/.nuget/packages/microsoft.aspnetcore.app.ref/6.0.2/microsoft.aspnetcore.app.ref.6.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}
