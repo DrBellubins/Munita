@@ -25,6 +25,7 @@ namespace Munita
 
         public float CameraZoom;
 
+        private Vector2 lastPosition;
         private Vector2 moveDirection = new Vector2(0f, 0f);
         private float currentSpeed;
 
@@ -37,12 +38,12 @@ namespace Munita
             Camera.zoom = 100.0f;
 
             CameraZoom = Camera.zoom;
-
-
         }
 
         public void Update(float deltaTime)
         {
+            lastPosition = Position;
+            
             if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
             {
                 moveDirection.Y -= 1f;
@@ -68,10 +69,42 @@ namespace Munita
             else
                 currentSpeed = WalkSpeed;
 
-            //moveDirection = GameMath.Vector2Normalized(moveDirection);
-            //moveDirection = Vector2.Normalize(moveDirection);
+            Position.X += moveDirection.X * currentSpeed * deltaTime;
 
-            Position += moveDirection * currentSpeed * deltaTime;
+            for (int i = 0; i < World.WallCols.Count; i++)
+            {
+                var inBounds = Raylib.CheckCollisionCircleRec(Position, 5f, World.WallCols[i]);
+
+                if (inBounds)
+                {
+                    // Not sure why this needs to be offset
+                    var checkPos = Position - new Vector2(0.5f, 0.5f);
+                    var isCollidingX = Raylib.CheckCollisionCircleRec(checkPos, 0.4f, World.WallCols[i]);
+
+                    if (isCollidingX)
+                        Position.X = lastPosition.X;
+                }
+                else
+                    continue;
+            }
+
+            Position.Y += moveDirection.Y * currentSpeed * deltaTime;
+
+            for (int i = 0; i < World.WallCols.Count; i++)
+            {
+                var inBounds = Raylib.CheckCollisionCircleRec(Position, 5f, World.WallCols[i]);
+
+                if (inBounds)
+                {
+                    var checkPos = Position - new Vector2(0.5f, 0.5f);
+                    var isCollidingY = Raylib.CheckCollisionCircleRec(checkPos, 0.4f, World.WallCols[i]);
+
+                    if (isCollidingY)
+                        Position.Y = lastPosition.Y;
+                }
+                else
+                    continue;
+            }
 
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
 
@@ -79,8 +112,6 @@ namespace Munita
             CameraZoom = GameMath.Clamp(CameraZoom, 20f, 100f);
 
             Camera.zoom = CameraZoom;
-
-            //Console.WriteLine($"{moveDirection.X} {moveDirection.Y}");
 
             moveDirection = Vector2.Zero;
         }
