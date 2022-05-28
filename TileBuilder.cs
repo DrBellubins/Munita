@@ -9,8 +9,17 @@ using Raylib_cs;
 
 namespace Munita
 {
+    public struct Tile
+    {
+        public bool IsWall;
+        public byte ID; // 0...255
+    }
+
     public class TileBuilder
     {
+        public Tile[,]? TileGrid;
+        public Vector2 TileGridPosition = Vector2.Zero;
+
         public Texture2D testTexture;
 
         public Rectangle tileSelection = new Rectangle(0f, 0f, 1f, 1f);
@@ -24,9 +33,11 @@ namespace Munita
 
         private static Color cursorColor = new Color(255, 255, 255, 128);
 
-        public void Initialize()
+        public void Initialize(int worldWidth, int worldHeight)
         {
             testTexture = Raylib.LoadTexture("Assets/Textures/stone_wall.png");
+
+            TileGrid = new Tile[worldWidth, worldHeight];
         }
 
         public void Update(Camera2D camera)

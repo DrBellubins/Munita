@@ -1,4 +1,6 @@
 .vs/
+bin/
+obj/
 Munita/bin/
 Munita/obj/
 obj/Debug/

@@ -36,7 +36,7 @@ namespace Munita
 
             // Initialize
             var tileBuilder = new TileBuilder();
-            tileBuilder.Initialize();
+            tileBuilder.Initialize(32, 32);
 
             var player = new Player();
             player.Initialize();
