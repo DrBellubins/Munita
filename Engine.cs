@@ -35,6 +35,9 @@ namespace Munita
             IsRunning = true;
 
             // Initialize
+            var world = new World();
+            world.Initialize();
+            
             var player = new Player();
             player.Initialize();
 
@@ -54,6 +57,7 @@ namespace Munita
                 time += deltaTime;
 
                 // Update
+                world.Update();
                 player.Update(deltaTime);
 
                 // Draw
@@ -62,6 +66,7 @@ namespace Munita
 
                 Raylib.BeginMode2D(player.Camera);
 
+                world.Draw();
                 player.Draw();
 
                 Raylib.EndMode2D();

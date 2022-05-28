@@ -3,7 +3,7 @@
  <properties>
   <property name="IsWall" type="bool" value="false"/>
  </properties>
- <tileset firstgid="1" source="../Tileset/Munita.tsx"/>
+ <tileset firstgid="1" source="../Tilesets/Munita.tsx"/>
  <layer id="1" name="Ground" width="32" height="32">
   <data encoding="csv">
 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
