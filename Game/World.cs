@@ -23,7 +23,7 @@ namespace Munita
 
         private List<Texture2D> tileTextures = new List<Texture2D>();
 
-        public void Initialize()
+        public void Initialize(bool isClient)
         {
             map = new TiledMap($"{GamePaths.Maps}\\Test.tmx");
             tileSet = new TiledTileset($"{GamePaths.Tilesets}\\Munita.tsx");
@@ -31,12 +31,15 @@ namespace Munita
             wallLayer = map.Layers.First(l => l.name == "Wall");
 
             // Load tileset textures into raylib
-            for (int i = 0; i < tileSet.TileCount; i++) // could need to be 1 less
+            if (isClient)
             {
-                var textureName = tileSet.Tiles[i].image.source.Remove(0, 12);
-                var tileName = textureName.Remove(textureName.Length - 4, 4);
+                for (int i = 0; i < tileSet.TileCount; i++) // could need to be 1 less
+                {
+                    var textureName = tileSet.Tiles[i].image.source.Remove(0, 12);
+                    var tileName = textureName.Remove(textureName.Length - 4, 4);
 
-                tileTextures.Add(Raylib.LoadTexture($"Assets/Textures/{textureName}"));
+                    tileTextures.Add(Raylib.LoadTexture($"Assets/Textures/{textureName}"));
+                }
             }
 
             for (var x = 0; x < groundLayer.width; x++)

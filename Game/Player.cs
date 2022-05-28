@@ -21,12 +21,12 @@ namespace Munita
         public const float ZoomSpeed = 2.5f;
 
         public Vector2 Position;
+        public Vector2 MoveDirection = new Vector2(0f, 0f);
         public Camera2D Camera;
 
         public float CameraZoom;
 
         private Vector2 lastPosition;
-        private Vector2 moveDirection = new Vector2(0f, 0f);
         private float currentSpeed;
 
         public void Initialize()
@@ -40,28 +40,33 @@ namespace Munita
             CameraZoom = Camera.zoom;
         }
 
-        public void Update(float deltaTime)
+        public void Update(bool isClient, float deltaTime)
         {
+            MoveDirection = Vector2.Zero;
+
             lastPosition = Position;
             
-            if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
+            if (isClient)
             {
-                moveDirection.Y -= 1f;
-            }
+                if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
+                {
+                    MoveDirection.Y -= 1f;
+                }
 
-            if (Raylib.IsKeyDown(KeyboardKey.KEY_S))
-            {
-                moveDirection.Y += 1f;
-            }
+                if (Raylib.IsKeyDown(KeyboardKey.KEY_S))
+                {
+                    MoveDirection.Y += 1f;
+                }
 
-            if (Raylib.IsKeyDown(KeyboardKey.KEY_A))
-            {
-                moveDirection.X -= 1f;
-            }
+                if (Raylib.IsKeyDown(KeyboardKey.KEY_A))
+                {
+                    MoveDirection.X -= 1f;
+                }
 
-            if (Raylib.IsKeyDown(KeyboardKey.KEY_D))
-            {
-                moveDirection.X += 1f;
+                if (Raylib.IsKeyDown(KeyboardKey.KEY_D))
+                {
+                    MoveDirection.X += 1f;
+                }
             }
 
             if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT))
@@ -69,7 +74,10 @@ namespace Munita
             else
                 currentSpeed = WalkSpeed;
 
-            Position.X += moveDirection.X * currentSpeed * deltaTime;
+            if (isClient)
+                Position.X = Engine.PosFromServer.X;
+            else
+                Position.X += Engine.MoveDirFromClient.X * currentSpeed * deltaTime;
 
             for (int i = 0; i < World.WallCols.Count; i++)
             {
@@ -88,7 +96,10 @@ namespace Munita
                     continue;
             }
 
-            Position.Y += moveDirection.Y * currentSpeed * deltaTime;
+            if (isClient)
+                Position.Y = Engine.PosFromServer.Y;
+            else
+                Position.Y += Engine.MoveDirFromClient.X * currentSpeed * deltaTime;
 
             for (int i = 0; i < World.WallCols.Count; i++)
             {
@@ -112,8 +123,6 @@ namespace Munita
             CameraZoom = GameMath.Clamp(CameraZoom, 20f, 100f);
 
             Camera.zoom = CameraZoom;
-
-            moveDirection = Vector2.Zero;
         }
 
         public void Draw()
