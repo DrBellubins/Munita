@@ -35,9 +35,6 @@ namespace Munita
             IsRunning = true;
 
             // Initialize
-            var tileBuilder = new TileBuilder();
-            tileBuilder.Initialize(32, 32);
-
             var player = new Player();
             player.Initialize();
 
@@ -57,7 +54,6 @@ namespace Munita
                 time += deltaTime;
 
                 // Update
-                tileBuilder.Update(player.Camera);
                 player.Update(deltaTime);
 
                 // Draw
@@ -66,7 +62,6 @@ namespace Munita
 
                 Raylib.BeginMode2D(player.Camera);
 
-                tileBuilder.Draw();
                 player.Draw();
 
                 Raylib.EndMode2D();
