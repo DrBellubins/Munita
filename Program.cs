@@ -11,6 +11,8 @@ namespace Munita
                 if (args[0] == "--server")
                 {
                     // Server engine init
+                    var serverEngine = new ServerEngine();
+                    serverEngine.Initialize();
                 }
                 else
                 {
