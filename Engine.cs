@@ -11,45 +11,29 @@ using Raylib_cs;
 
 namespace Munita
 {
-    // TODO: UDP stuff blocks updates until data is received... client/server don't update.
     public class Engine
     {
         public const int FPS = 60;
         public const float FrameTimestep = 1.0f / (float)FPS;
 
-        public const int ScreenWidth = 1920;
-        public const int ScreenHeight = 1080;
-
-        public bool IsRunning;
-        public bool IsPaused;
+        public const int ScreenWidth = 1600;
+        public const int ScreenHeight = 900;
 
         public static Vector2 MoveDirFromClient;
         public static Vector2 PosFromServer;
 
-        public void Initialize(bool isClient)
+        public static Font MainFont;
+
+        public bool IsRunning;
+        public bool IsPaused;
+
+        public void Initialize()
         {
-            var client = new UdpClient();
-            var server = new UdpClient();
+            Raylib.InitWindow(ScreenWidth, ScreenHeight, "Munita");
+            Raylib.SetExitKey(KeyboardKey.KEY_Q);
+            Raylib.SetTargetFPS(FPS);
 
-            var endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 25565);
-            var remoteEndpoint = new IPEndPoint(IPAddress.Any, 25565);
-
-            if (isClient)
-            {
-                client = new UdpClient();
-                client.Connect(endPoint);
-
-                Raylib.InitWindow(ScreenWidth, ScreenHeight, "Munita");
-                Raylib.SetExitKey(KeyboardKey.KEY_Q);
-                Raylib.SetTargetFPS(FPS);
-            }
-            else
-            {
-                server = new UdpClient(25565);
-            }
-
-            var dataFromServer = new byte[] {};
-            var dataFromClient = new byte[] {};
+            MainFont = Raylib.LoadFontEx("Assets/Font/VarelaRound-Regular.ttf", 64, null, 250);
 
             var time = 0.0f;
             var deltaTime = 0.0f;
@@ -61,10 +45,12 @@ namespace Munita
 
             // Initialize
             var world = new World();
-            world.Initialize(isClient);
+            world.Initialize(true);
             
             var player = new Player();
             player.Initialize();
+
+            Debug.Initialize();
 
             while (IsRunning)
             {
@@ -78,60 +64,32 @@ namespace Munita
 
                 time += deltaTime;
                 
-                if (isClient)
-                {
-                    dataFromServer = new byte[] {};
-                    dataFromServer = client.Receive(ref endPoint);
+                if (Raylib.WindowShouldClose())
+                    IsRunning = false;
+                
+                // Update
+                world.Update();
+                player.Update(true, deltaTime);
 
-                    if (Raylib.WindowShouldClose())
-                        IsRunning = false;
+                // Draw
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Color.BLACK);
 
-                    // Update
-                    PosFromServer = PacketUtils.UnpackPlayerPosition(dataFromServer);
+                Raylib.BeginMode2D(player.Camera);
 
-                    world.Update();
-                    player.Update(isClient, deltaTime);
+                world.Draw();
+                player.Draw();
 
-                    var moveBytes = PacketUtils.PackPlayerPosition(player.Position);
-                    
-                    if (moveBytes != null)
-                        server.Send(moveBytes, moveBytes.Length, remoteEndpoint);
+                Raylib.EndMode2D();
 
-                    // Draw
-                    Raylib.BeginDrawing();
-                    Raylib.ClearBackground(Color.BLACK);
+                Debug.Draw(time, deltaTime, player.Position);
 
-                    Raylib.BeginMode2D(player.Camera);
-
-                    world.Draw();
-                    player.Draw();
-
-                    Raylib.EndMode2D();
-
-                    Raylib.EndDrawing();
-                }
-                else // Server
-                {
-                    dataFromClient = new byte[] {};
-                    dataFromClient = server.Receive(ref remoteEndpoint);
-
-                    // Update
-                    MoveDirFromClient = PacketUtils.UnpackPlayerPosition(dataFromClient);
-
-                    world.Update();
-                    player.Update(isClient, deltaTime);
-
-                    var posBytes = PacketUtils.PackPlayerPosition(player.Position);
-
-                    if (posBytes != null)
-                        server.Send(posBytes, posBytes.Length, remoteEndpoint);
-                }
+                Raylib.EndDrawing();
                 
                 previousTimer = currentTimer;
             }
 
-            if (isClient)
-                Raylib.CloseWindow();
+            Raylib.CloseWindow();
         }
     }
 }

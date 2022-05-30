@@ -6,15 +6,23 @@ namespace Munita
     {
         public static void Main(string[] args)
         {
-            var engine = new Engine();
-
             if (args.Length > 0)
             {
                 if (args[0] == "--server")
-                    engine.Initialize(false);
+                {
+                    // Server engine init
+                }
+                else
+                {
+                    var engine = new Engine();
+                    engine.Initialize();
+                }
             }
             else
-                engine.Initialize(true);
+            {
+                var engine = new Engine();
+                engine.Initialize();
+            }
 
             Console.WriteLine("Engine started!");
         }

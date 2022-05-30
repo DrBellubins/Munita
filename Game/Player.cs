@@ -20,6 +20,8 @@ namespace Munita
         // Input
         public const float ZoomSpeed = 2.5f;
 
+        public int Health { get; private set; }
+
         public Vector2 Position;
         public Vector2 MoveDirection = new Vector2(0f, 0f);
         public Camera2D Camera;
@@ -31,6 +33,8 @@ namespace Munita
 
         public void Initialize()
         {
+            Respawn();
+
             Camera = new Camera2D();
             Camera.target = new Vector2(Position.X, Position.Y);
             Camera.offset = new Vector2(UI.CenterPivot.X, UI.CenterPivot.Y);
@@ -43,7 +47,6 @@ namespace Munita
         public void Update(bool isClient, float deltaTime)
         {
             MoveDirection = Vector2.Zero;
-
             lastPosition = Position;
             
             if (isClient)
@@ -74,10 +77,10 @@ namespace Munita
             else
                 currentSpeed = WalkSpeed;
 
-            if (isClient)
-                Position.X = Engine.PosFromServer.X;
-            else
-                Position.X += Engine.MoveDirFromClient.X * currentSpeed * deltaTime;
+            Position.X += MoveDirection.X * currentSpeed * deltaTime;
+
+            if (Position.X < 0f || Position.X > 32f)
+                Kill();
 
             for (int i = 0; i < World.WallCols.Count; i++)
             {
@@ -96,10 +99,10 @@ namespace Munita
                     continue;
             }
 
-            if (isClient)
-                Position.Y = Engine.PosFromServer.Y;
-            else
-                Position.Y += Engine.MoveDirFromClient.X * currentSpeed * deltaTime;
+            Position.Y += MoveDirection.Y * currentSpeed * deltaTime;
+
+            if (Position.Y < 0f || Position.Y > 32f)
+                Kill();
 
             for (int i = 0; i < World.WallCols.Count; i++)
             {
@@ -117,6 +120,9 @@ namespace Munita
                     continue;
             }
 
+            if (Health <= 0)
+                Respawn();
+
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
 
             CameraZoom += Raylib.GetMouseWheelMove() * ZoomSpeed;
@@ -128,6 +134,27 @@ namespace Munita
         public void Draw()
         {
             Raylib.DrawCircleV(Position, 0.4f, Color.BLUE);
+        }
+
+        public void Damage(int amount)
+        {
+            Health = GameMath.Clamp(Health - amount, 0, 100);
+        }
+
+        public void Heal(int amount)
+        {
+            Health = GameMath.Clamp(Health + amount, 0, 100);
+        }
+
+        public void Kill()
+        {
+            Health = -999;
+        }
+
+        public void Respawn()
+        {
+            Health = 100;
+            Position = new Vector2(16f, 16f);
         }
     }
 }
