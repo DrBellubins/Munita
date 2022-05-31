@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Sockets;
 
 using Raylib_cs;
+using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace Munita
 {
@@ -31,6 +33,16 @@ namespace Munita
 
             IsRunning = true;
 
+            // Networking
+            var udpListener = new ServerListener();
+            var udpServer = new NetManager(udpListener);
+
+            udpListener.Server = udpServer;
+
+            udpServer.Start(25565);
+
+            var dataWriter = new NetDataWriter();
+
             // Initialize
             var world = new World();
             world.Initialize(false);
@@ -51,11 +63,23 @@ namespace Munita
                 time += deltaTime;
                 
                 // Update
+                //udpListener.TestServerVec = player.Position;
+                udpServer.PollEvents();
+
+                dataWriter.Reset();
+                dataWriter.Put(player.Position.X);
+                dataWriter.Put(player.Position.Y);
+
+                if (udpServer.ConnectedPeersCount > 0)
+                    udpServer.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
+
                 world.Update();
                 player.Update(false, deltaTime);
                 
                 previousTimer = currentTimer;
             }
+
+            udpServer.Stop();
         }
     }
 }

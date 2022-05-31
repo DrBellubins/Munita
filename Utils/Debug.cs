@@ -69,6 +69,13 @@ namespace Munita
             Console.WriteLine(log);
         }
 
+        public static void Announce(string announcement)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(announcement);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
         public static void Warning(string warning)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
