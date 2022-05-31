@@ -33,7 +33,7 @@ namespace Munita
             // Load tileset textures into raylib
             if (isClient)
             {
-                for (int i = 0; i < tileSet.TileCount; i++) // could need to be 1 less
+                for (int i = 0; i < tileSet.TileCount; i++)
                 {
                     var textureName = tileSet.Tiles[i].image.source.Remove(0, 12);
                     var tileName = textureName.Remove(textureName.Length - 4, 4);
@@ -42,11 +42,11 @@ namespace Munita
                 }
             }
 
-            for (var x = 0; x < groundLayer.width; x++)
+            for (var x = 0; x < wallLayer.width; x++)
             {
-                for (var y = 0; y < groundLayer.height; y++)
+                for (var y = 0; y < wallLayer.height; y++)
                 {
-                    var index = (y * groundLayer.height) + x;
+                    var index = (y * wallLayer.height) + x;
                     var gid = wallLayer.data[index]; // The tileset tile index
                         
                     // Gid 0 is used to tell there is no tile set

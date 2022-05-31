@@ -15,15 +15,15 @@ namespace Munita
 {
     public class ServerEngine
     {
-        public const int FPS = 60;
-        public const float FrameTimestep = 1.0f / (float)FPS;
+        public const int TicksPerSecond = 20;
+        public const int TickRate = 1000 / TicksPerSecond;
 
         public bool IsRunning;
         public bool IsPaused;
 
         public void Initialize()
         {
-            Debug.Log("Server engine started!");
+            Debug.Announce("Server engine started!");
 
             var time = 0.0f;
             var deltaTime = 0.0f;
@@ -54,12 +54,7 @@ namespace Munita
             {
                 currentTimer = DateTime.Now;
 
-                if (IsPaused)
-                    deltaTime = 0.0f;
-                else
-                    deltaTime = FrameTimestep;
-                    //deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
-
+                deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
                 time += deltaTime;
                 
                 // Update
@@ -75,9 +70,8 @@ namespace Munita
                 if (udpServer.ConnectedPeersCount > 0)
                     udpServer.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
                 
+                Thread.Sleep(TickRate); // Update 20 times a second
                 previousTimer = currentTimer;
-
-                Thread.Sleep(15); // Doesn't update if too fast
             }
 
             udpServer.Stop();

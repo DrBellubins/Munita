@@ -34,7 +34,7 @@ namespace Munita
 
             MainFont = Raylib.LoadFontEx("Assets/Font/VarelaRound-Regular.ttf", 64, null, 250);
 
-            Debug.Log("Client engine started!");
+            Debug.Announce("Client engine started!");
 
             var time = 0.0f;
             var deltaTime = 0.0f;

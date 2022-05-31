@@ -22,6 +22,8 @@ namespace Munita
 
         public float CameraZoom;
 
+        private Vector2 lastPosition;
+
         // Temporary
         private static Vector2 networkPosition;
 
@@ -38,6 +40,8 @@ namespace Munita
 
         public void Update(float deltaTime)
         {
+            lastPosition = Position;
+
             MoveDirection = Vector2.Zero;
 
             // Input
@@ -63,7 +67,7 @@ namespace Munita
 
             IsRunning = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
 
-            Position = networkPosition;
+            Position = Vector2.Lerp(lastPosition, networkPosition, 5.0f * deltaTime);
 
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
 
@@ -75,6 +79,7 @@ namespace Munita
 
         public void Draw()
         {
+            //Raylib.DrawCircleV(networkPosition, 0.4f, Color.RED);
             Raylib.DrawCircleV(Position, 0.4f, Color.BLUE);
         }
 
