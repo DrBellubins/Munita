@@ -42,6 +42,9 @@ namespace Munita
             else
                 currentSpeed = WalkSpeed;
 
+            // speed hack prevention
+            networkDirection.X = GameMath.Clamp(networkDirection.X, -1f, 1f);
+
             Position.X += networkDirection.X * currentSpeed * deltaTime;
 
             if (Position.X < 0f || Position.X > 32f)
@@ -64,6 +67,9 @@ namespace Munita
                     continue;
             }
 
+            // speed hack prevention
+            networkDirection.Y = GameMath.Clamp(networkDirection.Y, -1f, 1f);
+            
             Position.Y += networkDirection.Y * currentSpeed * deltaTime;
 
             if (Position.Y < 0f || Position.Y > 32f)
