@@ -13,7 +13,7 @@ using LiteNetLib.Utils;
 
 namespace Munita
 {
-    public class Engine
+    public class ClientEngine
     {
         public const int FPS = 60;
         public const float FrameTimestep = 1.0f / (float)FPS;
@@ -62,7 +62,7 @@ namespace Munita
             var world = new World();
             world.Initialize(true);
             
-            var player = new Player();
+            var player = new ClientPlayer();
             player.Initialize();
 
             Debug.Initialize();
@@ -83,17 +83,17 @@ namespace Munita
                     IsRunning = false;
                 
                 // Update
-                //udpListener.TestClientVec = player.MoveDirection;
                 udpClient.PollEvents();
 
+                world.Update();
+                player.Update(deltaTime);
+
                 dataWriter.Reset();
+                dataWriter.Put(player.IsRunning);
                 dataWriter.Put(player.MoveDirection.X);
                 dataWriter.Put(player.MoveDirection.Y);
                 
                 udpClient.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
-
-                world.Update();
-                player.Update(true, deltaTime);
 
                 // Draw
                 Raylib.BeginDrawing();

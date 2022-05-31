@@ -15,8 +15,6 @@ namespace Munita
 {
     public class ClientListener : INetEventListener
     {
-        public Vector2 TestClientVec = Vector2.Zero;
-
         public void OnPeerConnected(NetPeer peer)
         {
             Debug.Announce($"[Client] connected to: {peer.EndPoint.Address}:{peer.EndPoint.Port}");
@@ -41,7 +39,10 @@ namespace Munita
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
         {
-            Debug.Log($"[Client] received: {reader.GetFloat()}, {reader.GetFloat()}");
+            var pos = new Vector2(reader.GetFloat(), reader.GetFloat());
+            ClientPlayer.NetUpdate(pos);
+
+            //Debug.Log($"[Client] received: {pos.X}, {pos.Y}");
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader,
@@ -60,8 +61,6 @@ namespace Munita
 
     public class ServerListener : INetEventListener
     {
-        public Vector2 TestServerVec = Vector2.One;
-
         public NetManager Server;
 
         public void OnPeerConnected(NetPeer peer)
@@ -87,18 +86,8 @@ namespace Munita
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
         {
-            //echo
-            //peer.Send(reader.GetRemainingBytes(), deliveryMethod);
-
-            Debug.Log($"[Server] received: {reader.GetFloat()}, {reader.GetFloat()}");
-
-            /*var dataWriter = new NetDataWriter();
-
-            dataWriter.Reset();
-            dataWriter.Put(TestServerVec.X);
-            dataWriter.Put(TestServerVec.Y);
-
-            peer.Send(dataWriter, DeliveryMethod.ReliableOrdered);*/
+            ServerPlayer.NetUpdate(reader.GetBool(), 
+                new Vector2(reader.GetFloat(), reader.GetFloat()));
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)

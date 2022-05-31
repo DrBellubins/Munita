@@ -9,7 +9,7 @@ using Raylib_cs;
 
 namespace Munita
 {
-    public class Player
+    public class ServerPlayer
     {
         // Movement
         public const float WalkSpeed = 1.45f;
@@ -17,16 +17,13 @@ namespace Munita
 
         public const float Dampening = 17.0f;
 
-        // Input
-        public const float ZoomSpeed = 2.5f;
-
         public int Health { get; private set; }
 
         public Vector2 Position;
-        public Vector2 MoveDirection = new Vector2(0f, 0f);
-        public Camera2D Camera;
 
-        public float CameraZoom;
+        // Temporary
+        private static bool networkIsRunning;
+        private static Vector2 networkDirection;
 
         private Vector2 lastPosition;
         private float currentSpeed;
@@ -34,50 +31,18 @@ namespace Munita
         public void Initialize()
         {
             Respawn();
-
-            Camera = new Camera2D();
-            Camera.target = new Vector2(Position.X, Position.Y);
-            Camera.offset = new Vector2(UI.CenterPivot.X, UI.CenterPivot.Y);
-            Camera.rotation = 0.0f; // Flip camera so that north is +Y
-            Camera.zoom = 100.0f;
-
-            CameraZoom = Camera.zoom;
         }
 
-        public void Update(bool isClient, float deltaTime)
+        public void Update(float deltaTime)
         {
-            MoveDirection = Vector2.Zero;
             lastPosition = Position;
-            
-            if (isClient)
-            {
-                if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
-                {
-                    MoveDirection.Y -= 1f;
-                }
 
-                if (Raylib.IsKeyDown(KeyboardKey.KEY_S))
-                {
-                    MoveDirection.Y += 1f;
-                }
-
-                if (Raylib.IsKeyDown(KeyboardKey.KEY_A))
-                {
-                    MoveDirection.X -= 1f;
-                }
-
-                if (Raylib.IsKeyDown(KeyboardKey.KEY_D))
-                {
-                    MoveDirection.X += 1f;
-                }
-            }
-
-            if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT))
+            if (networkIsRunning)
                 currentSpeed = RunSpeed;
             else
                 currentSpeed = WalkSpeed;
 
-            Position.X += MoveDirection.X * currentSpeed * deltaTime;
+            Position.X += networkDirection.X * currentSpeed * deltaTime;
 
             if (Position.X < 0f || Position.X > 32f)
                 Kill();
@@ -99,7 +64,7 @@ namespace Munita
                     continue;
             }
 
-            Position.Y += MoveDirection.Y * currentSpeed * deltaTime;
+            Position.Y += networkDirection.Y * currentSpeed * deltaTime;
 
             if (Position.Y < 0f || Position.Y > 32f)
                 Kill();
@@ -122,18 +87,12 @@ namespace Munita
 
             if (Health <= 0)
                 Respawn();
-
-            Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
-
-            CameraZoom += Raylib.GetMouseWheelMove() * ZoomSpeed;
-            CameraZoom = GameMath.Clamp(CameraZoom, 20f, 100f);
-
-            Camera.zoom = CameraZoom;
         }
 
-        public void Draw()
+        public static void NetUpdate(bool isRunning, Vector2 dir)
         {
-            Raylib.DrawCircleV(Position, 0.4f, Color.BLUE);
+            networkIsRunning = isRunning;
+            networkDirection = dir;
         }
 
         public void Damage(int amount)

@@ -16,15 +16,14 @@ namespace Munita
                 }
                 else
                 {
-                    var engine = new Engine();
-                    engine.Initialize();
+                    var clientEngine = new ClientEngine();
+                    clientEngine.Initialize();
                 }
             }
             else
             {
-                var engine = new Engine();
-                engine.Initialize();
-                
+                var clientEngine = new ClientEngine();
+                clientEngine.Initialize();
             }
         }
     }

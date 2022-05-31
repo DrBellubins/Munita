@@ -47,7 +47,7 @@ namespace Munita
             var world = new World();
             world.Initialize(false);
             
-            var player = new Player();
+            var player = new ServerPlayer();
             player.Initialize();
 
             while (IsRunning)
@@ -63,8 +63,10 @@ namespace Munita
                 time += deltaTime;
                 
                 // Update
-                //udpListener.TestServerVec = player.Position;
                 udpServer.PollEvents();
+
+                world.Update();
+                player.Update(deltaTime);
 
                 dataWriter.Reset();
                 dataWriter.Put(player.Position.X);
@@ -72,11 +74,10 @@ namespace Munita
 
                 if (udpServer.ConnectedPeersCount > 0)
                     udpServer.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
-
-                world.Update();
-                player.Update(false, deltaTime);
                 
                 previousTimer = currentTimer;
+
+                Thread.Sleep(15); // Doesn't update if too fast
             }
 
             udpServer.Stop();
