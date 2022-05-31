@@ -24,9 +24,8 @@ namespace Munita
             {
                 var engine = new Engine();
                 engine.Initialize();
+                
             }
-
-            Console.WriteLine("Engine started!");
         }
     }
 }

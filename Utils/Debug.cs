@@ -62,5 +62,25 @@ namespace Munita
 
             Rlgl.rlPopMatrix();
         }
+
+        public static void Log(string log)
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(log);
+        }
+
+        public static void Warning(string warning)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(warning);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        public static void Error(string error)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(error);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
     }
 }

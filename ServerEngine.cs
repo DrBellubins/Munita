@@ -21,6 +21,8 @@ namespace Munita
 
         public void Initialize()
         {
+            Debug.Log("Server engine started!");
+
             var time = 0.0f;
             var deltaTime = 0.0f;
 
