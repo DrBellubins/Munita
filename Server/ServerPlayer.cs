@@ -21,9 +21,10 @@ namespace Munita
 
         public Vector2 Position;
 
-        // Temporary
-        private static bool networkIsRunning;
-        private static Vector2 networkDirection;
+        // Clientside data
+        public string Username;
+        public bool IsRunning;
+        public Vector2 MoveDirection;
 
         private Vector2 lastPosition;
         private float currentSpeed;
@@ -37,15 +38,15 @@ namespace Munita
         {
             lastPosition = Position;
 
-            if (networkIsRunning)
+            if (IsRunning)
                 currentSpeed = RunSpeed;
             else
                 currentSpeed = WalkSpeed;
 
             // speed hack prevention
-            networkDirection.X = GameMath.Clamp(networkDirection.X, -1f, 1f);
+            MoveDirection.X = GameMath.Clamp(MoveDirection.X, -1f, 1f);
 
-            Position.X += networkDirection.X * currentSpeed * deltaTime;
+            Position.X += MoveDirection.X * currentSpeed * deltaTime;
 
             if (Position.X < 0f || Position.X > 32f)
                 Kill();
@@ -68,9 +69,9 @@ namespace Munita
             }
 
             // speed hack prevention
-            networkDirection.Y = GameMath.Clamp(networkDirection.Y, -1f, 1f);
+            MoveDirection.Y = GameMath.Clamp(MoveDirection.Y, -1f, 1f);
             
-            Position.Y += networkDirection.Y * currentSpeed * deltaTime;
+            Position.Y += MoveDirection.Y * currentSpeed * deltaTime;
 
             if (Position.Y < 0f || Position.Y > 32f)
                 Kill();
@@ -93,12 +94,6 @@ namespace Munita
 
             if (Health <= 0)
                 Respawn();
-        }
-
-        public static void NetUpdate(bool isRunning, Vector2 dir)
-        {
-            networkIsRunning = isRunning;
-            networkDirection = dir;
         }
 
         public void Damage(int amount)

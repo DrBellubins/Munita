@@ -22,6 +22,7 @@ namespace Munita
         public const int ScreenHeight = 900;
 
         public static Font MainFont;
+        public static string ServerIP = "";
 
         public bool IsRunning;
         public bool IsPaused;
@@ -45,7 +46,9 @@ namespace Munita
             IsRunning = true;
 
             // Networking
-            var udpListener = new ClientListener();
+            var udpListener = new MunitaClient();
+
+            udpListener.LoadConfig();
 
             var udpClient = new NetManager(udpListener)
             {
@@ -54,7 +57,7 @@ namespace Munita
             };
 
             udpClient.Start();
-            udpClient.Connect("localhost", 25565, "munita-client777");
+            udpClient.Connect(ServerIP, 25565, "munita-client777");
 
             var dataWriter = new NetDataWriter();
 
@@ -89,6 +92,7 @@ namespace Munita
                 player.Update(deltaTime);
 
                 dataWriter.Reset();
+                dataWriter.Put(ClientPlayer.Username);
                 dataWriter.Put(player.IsRunning);
                 dataWriter.Put(player.MoveDirection.X);
                 dataWriter.Put(player.MoveDirection.Y);

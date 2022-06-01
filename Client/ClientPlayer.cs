@@ -14,6 +14,9 @@ namespace Munita
         // Input
         public const float ZoomSpeed = 2.5f;
 
+        // Client info
+        public static string Username = "";
+
         // Movement
         public bool IsRunning;
         public Vector2 Position;
@@ -67,7 +70,8 @@ namespace Munita
 
             IsRunning = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
 
-            Position = Vector2.Lerp(lastPosition, networkPosition, 5.0f * deltaTime);
+            //Position = Vector2.Lerp(lastPosition, networkPosition, 5.0f * deltaTime);
+            Position = networkPosition;
 
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
 

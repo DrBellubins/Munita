@@ -34,21 +34,16 @@ namespace Munita
             IsRunning = true;
 
             // Networking
-            var udpListener = new ServerListener();
+            var udpListener = new MunitaServer();
             var udpServer = new NetManager(udpListener);
 
-            udpListener.Server = udpServer;
+            udpListener.UdpServer = udpServer;
 
             udpServer.Start(25565);
-
-            var dataWriter = new NetDataWriter();
 
             // Initialize
             var world = new World();
             world.Initialize(false);
-            
-            var player = new ServerPlayer();
-            player.Initialize();
 
             while (IsRunning)
             {
@@ -61,14 +56,21 @@ namespace Munita
                 udpServer.PollEvents();
 
                 world.Update();
-                player.Update(deltaTime);
-
-                dataWriter.Reset();
-                dataWriter.Put(player.Position.X);
-                dataWriter.Put(player.Position.Y);
 
                 if (udpServer.ConnectedPeersCount > 0)
-                    udpServer.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
+                {
+                    for (int i = 0; i < udpListener.Players.Count; i++)
+                    {
+                        var dataWriter = new NetDataWriter();
+
+                        udpListener.Players[i].Update(deltaTime);
+
+                        dataWriter.Put(udpListener.Players[i].Position.X);
+                        dataWriter.Put(udpListener.Players[i].Position.Y);
+
+                        udpServer.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
+                    }
+                }
                 
                 Thread.Sleep(TickRate); // Update 20 times a second
                 previousTimer = currentTimer;

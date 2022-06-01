@@ -13,69 +13,28 @@ using LiteNetLib.Utils;
 
 namespace Munita
 {
-    public class ClientListener : INetEventListener
+    public class MunitaServer : INetEventListener
     {
-        public void OnPeerConnected(NetPeer peer)
-        {
-            Debug.Announce($"[Client] connected to: {peer.EndPoint.Address}:{peer.EndPoint.Port}");
-
-            /*NetDataWriter dataWriter = new NetDataWriter();
-
-            dataWriter.Reset();
-            dataWriter.Put(TestClientVec.X);
-            dataWriter.Put(TestClientVec.Y);
-            peer.Send(dataWriter, DeliveryMethod.ReliableOrdered);*/
-        }
-
-        public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
-        {
-            Debug.Warning($"[Client] disconnected: {disconnectInfo.Reason}");
-        }
-
-        public void OnNetworkError(IPEndPoint endPoint, SocketError socketErrorCode)
-        {
-            Debug.Error($"[Client] error! {socketErrorCode}");
-        }
-
-        public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
-        {
-            var pos = new Vector2(reader.GetFloat(), reader.GetFloat());
-            ClientPlayer.NetUpdate(pos);
-
-            //Debug.Log($"[Client] received: {pos.X}, {pos.Y}");
-        }
-
-        public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader,
-            UnconnectedMessageType messageType)
-        {
-        }
-
-        public void OnNetworkLatencyUpdate(NetPeer peer, int latency)
-        {
-        }
-
-        public void OnConnectionRequest(ConnectionRequest request)
-        {
-        }
-    }
-
-    public class ServerListener : INetEventListener
-    {
-        public NetManager Server;
+        public NetManager UdpServer;
+        public List<ServerPlayer> Players = new List<ServerPlayer>();
 
         public void OnPeerConnected(NetPeer peer)
         {
             Debug.Announce($"[Server] Peer connected: {peer.EndPoint}");
 
-            foreach (var netPeer in Server)
+            if (peer.ConnectionState == ConnectionState.Connected)
             {
-                if (netPeer.ConnectionState == ConnectionState.Connected)
-                    Debug.Log($"ConnectedPeersList: id={netPeer.Id}, ep={netPeer.EndPoint}");
+                var player = new ServerPlayer();
+                player.Initialize();
+
+                Players.Add(player);
+                Debug.Log($"ConnectedPeersList: id = {peer.Id}, ep = {peer.EndPoint}");
             }
         }
 
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
+            Players.RemoveAt(peer.Id);
             Debug.Warning($"[Server] Peer disconnected: {peer.EndPoint}, reason: {disconnectInfo.Reason}");
         }
 
@@ -86,8 +45,12 @@ namespace Munita
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
         {
-            ServerPlayer.NetUpdate(reader.GetBool(), 
-                new Vector2(reader.GetFloat(), reader.GetFloat()));
+            Players[peer.Id].Username = reader.GetString();
+            Players[peer.Id].IsRunning = reader.GetBool();
+            Players[peer.Id].MoveDirection = new Vector2(reader.GetFloat(), reader.GetFloat());
+
+            //ServerPlayer.NetUpdate(reader.GetString(), reader.GetBool(), 
+            //    new Vector2(reader.GetFloat(), reader.GetFloat()));
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
@@ -104,6 +67,76 @@ namespace Munita
             var acceptedPeer = request.AcceptIfKey("munita-client777");
 
             Debug.Log($"[Server] ConnectionRequest. Ep: {request.RemoteEndPoint}, Accepted: {acceptedPeer != null}");
+        }
+    }
+
+    public class MunitaClient : INetEventListener
+    {
+        public void LoadConfig()
+        {
+            var configPath = $"{Environment.CurrentDirectory}\\client.conf";
+
+            if (File.Exists(configPath))
+            {
+                Debug.Warning($"Client.conf already exists, loading.");
+
+                var configLines = File.ReadAllLines(configPath);
+
+                var usernameLineStr = configLines[0];
+                var usernameLineParseStr = usernameLineStr.Split("Username: ", 2, StringSplitOptions.RemoveEmptyEntries);
+
+                ClientPlayer.Username = usernameLineParseStr[0];
+
+                var ipLineStr = configLines[1];
+                var ipLineParseStr = ipLineStr.Split("IP: ", 2, StringSplitOptions.RemoveEmptyEntries);
+
+                ClientEngine.ServerIP = ipLineParseStr[0];
+            }
+            else
+            {
+                using (var fs = new FileStream(configPath, FileMode.CreateNew))
+                {
+                    using (var sw = new StreamWriter(fs))
+                    {
+                        sw.WriteLine("Username: Player");
+                        sw.WriteLine("IP: 127.0.0.1");
+                    }
+                }
+            }
+        }
+
+        public void OnPeerConnected(NetPeer peer)
+        {
+            Debug.Announce($"[Client] connected to: {peer.EndPoint.Address}:{peer.EndPoint.Port}");
+        }
+
+        public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
+        {
+            Debug.Warning($"[Client] disconnected: {disconnectInfo.Reason}");
+        }
+
+        public void OnNetworkError(IPEndPoint endPoint, SocketError socketErrorCode)
+        {
+            Debug.Error($"[Client] error! {socketErrorCode}");
+        }
+
+        public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
+        {
+            var pos = new Vector2(reader.GetFloat(), reader.GetFloat());
+            ClientPlayer.NetUpdate(pos);
+        }
+
+        public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader,
+            UnconnectedMessageType messageType)
+        {
+        }
+
+        public void OnNetworkLatencyUpdate(NetPeer peer, int latency)
+        {
+        }
+
+        public void OnConnectionRequest(ConnectionRequest request)
+        {
         }
     }
 }
