@@ -48,9 +48,6 @@ namespace Munita
             while (IsRunning)
             {
                 currentTimer = DateTime.Now;
-
-                deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
-                time += deltaTime;
                 
                 // Update
                 udpServer.PollEvents();
@@ -61,18 +58,34 @@ namespace Munita
                 {
                     for (int i = 0; i < udpListener.Players.Count; i++)
                     {
-                        var dataWriter = new NetDataWriter();
-
                         udpListener.Players[i].Update(deltaTime);
 
+                        // Packet order:
+                        // Player count
+                        // Current player position
+                        // Other player positions
+
+                        var dataWriter = new NetDataWriter();
+                        dataWriter.Put(udpListener.Players.Count);
                         dataWriter.Put(udpListener.Players[i].Position.X);
                         dataWriter.Put(udpListener.Players[i].Position.Y);
 
-                        udpServer.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
+                        // TODO: Probably a better way of doing this...
+                        for (int ii = 0; ii < udpListener.Players.Count; ii++)
+                        {
+                            dataWriter.Put(udpListener.Players[ii].Position.X);
+                            dataWriter.Put(udpListener.Players[ii].Position.Y);
+                        }
+
+                        udpServer.GetPeerById(i).Send(dataWriter, DeliveryMethod.ReliableOrdered);
                     }
                 }
-                
-                Thread.Sleep(TickRate); // Update 20 times a second
+
+                Thread.Sleep(TickRate);
+
+                deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
+                time += deltaTime;
+
                 previousTimer = currentTimer;
             }
 

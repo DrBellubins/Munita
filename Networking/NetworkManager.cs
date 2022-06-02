@@ -13,6 +13,8 @@ using LiteNetLib.Utils;
 
 namespace Munita
 {
+    // TODO: Peer id doesn't get negated when leaving,
+    // thus rejoining leads to a mismatch with the Players list
     public class MunitaServer : INetEventListener
     {
         public NetManager UdpServer;
@@ -122,8 +124,17 @@ namespace Munita
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
         {
-            var pos = new Vector2(reader.GetFloat(), reader.GetFloat());
-            ClientPlayer.NetUpdate(pos);
+            var playerCount = reader.GetInt();
+            var currentPlayerPos = new Vector2(reader.GetFloat(), reader.GetFloat());
+
+            ClientPlayer.NetUpdate(currentPlayerPos);
+
+            ClientEngine.PlayerPositions.Clear();
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                ClientEngine.PlayerPositions.Add(new Vector2(reader.GetFloat(), reader.GetFloat()));
+            }
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader,

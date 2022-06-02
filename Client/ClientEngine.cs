@@ -23,6 +23,7 @@ namespace Munita
 
         public static Font MainFont;
         public static string ServerIP = "";
+        public static List<Vector2> PlayerPositions = new List<Vector2>();
 
         public bool IsRunning;
         public bool IsPaused;
@@ -53,11 +54,14 @@ namespace Munita
             var udpClient = new NetManager(udpListener)
             {
                 SimulationMaxLatency = 1500,
-                SimulateLatency = true
+                SimulateLatency = true,
+                IPv6Enabled = IPv6Mode.Disabled,
             };
 
             udpClient.Start();
             udpClient.Connect(ServerIP, 25565, "munita-client777");
+
+            Console.WriteLine($"Connected to {ServerIP}:{udpClient.LocalPort}");
 
             var dataWriter = new NetDataWriter();
 
@@ -73,14 +77,6 @@ namespace Munita
             while (IsRunning)
             {
                 currentTimer = DateTime.Now;
-
-                if (IsPaused)
-                    deltaTime = 0.0f;
-                else
-                    deltaTime = FrameTimestep;
-                    //deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
-
-                time += deltaTime;
                 
                 if (Raylib.WindowShouldClose())
                     IsRunning = false;
@@ -106,6 +102,12 @@ namespace Munita
                 Raylib.BeginMode2D(player.Camera);
 
                 world.Draw();
+
+                for (int i = 0; i < PlayerPositions.Count; i++)
+                {
+                    Raylib.DrawCircleV(PlayerPositions[i], 0.4f, Color.GREEN);
+                }
+
                 player.Draw();
 
                 Raylib.EndMode2D();
@@ -114,6 +116,14 @@ namespace Munita
 
                 Raylib.EndDrawing();
                 
+                if (IsPaused)
+                    deltaTime = 0.0f;
+                else
+                    deltaTime = FrameTimestep;
+                    //deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
+
+                time += deltaTime;
+
                 previousTimer = currentTimer;
             }
 
