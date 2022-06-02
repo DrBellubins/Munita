@@ -58,13 +58,14 @@ namespace Munita
                 {
                     for (int i = 0; i < udpListener.Players.Count; i++)
                     {
+                        Debug.Announce($"{udpListener.Players.Count}");
+
                         udpListener.Players[i].Update(deltaTime);
 
                         // Packet order:
                         // Player count
                         // Current player position
                         // Other player positions
-
                         var dataWriter = new NetDataWriter();
                         dataWriter.Put(udpListener.Players.Count);
                         dataWriter.Put(udpListener.Players[i].Position.X);
@@ -77,7 +78,10 @@ namespace Munita
                             dataWriter.Put(udpListener.Players[ii].Position.Y);
                         }
 
-                        udpServer.GetPeerById(i).Send(dataWriter, DeliveryMethod.ReliableOrdered);
+                        var peer = udpServer.GetPeerById(i);
+
+                        if (peer != null)
+                            peer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
                     }
                 }
 
