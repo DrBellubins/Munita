@@ -13,24 +13,18 @@ using LiteNetLib.Utils;
 
 namespace Munita
 {
-    // TODO: Leaving and rejoining crashes server...
+    // TODO: When leaving and rejoining server doesn't send pos to client
     public class MunitaServer : INetEventListener
     {
         public NetManager UdpServer;
-        public Dictionary<int, ServerPlayer> Players = new Dictionary<int, ServerPlayer>();
+        public List<ServerPlayer> Players = new List<ServerPlayer>();
 
         public void OnPeerConnected(NetPeer peer)
         {
             Debug.Announce($"[Server] Peer connected: {peer.EndPoint}");
 
             if (peer.ConnectionState == ConnectionState.Connected)
-            {
-                var player = new ServerPlayer();
-                player.Initialize();
-
-                Players.Add(peer.Id, player);
                 Debug.Log($"ConnectedPeersList: id = {peer.Id}, ep = {peer.EndPoint}");
-            }
         }
 
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
@@ -45,14 +39,25 @@ namespace Munita
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
         {
-            Debug.Warning($"{peer.Id}");
+            var username = reader.GetString();
 
-            Players[peer.Id].Username = reader.GetString();
-            Players[peer.Id].IsRunning = reader.GetBool();
-            Players[peer.Id].MoveDirection = new Vector2(reader.GetFloat(), reader.GetFloat());
+            var player = GetPlayerByUsername(username);
 
-            //ServerPlayer.NetUpdate(reader.GetString(), reader.GetBool(), 
-            //    new Vector2(reader.GetFloat(), reader.GetFloat()));
+            if (player != null)
+            {
+                //player.Peer = peer; // TEMP: DISABLES MORE THAN 1 PLAYER
+                player.IsRunning = reader.GetBool();
+                player.MoveDirection = new Vector2(reader.GetFloat(), reader.GetFloat());
+            }
+            else
+            {
+                player = new ServerPlayer();
+                player.Initialize(peer);
+
+                player.Username = username;
+
+                Players.Add(player);
+            }
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
@@ -69,6 +74,11 @@ namespace Munita
             var acceptedPeer = request.AcceptIfKey("munita-client777");
 
             Debug.Log($"[Server] ConnectionRequest. Ep: {request.RemoteEndPoint}, Accepted: {acceptedPeer != null}");
+        }
+
+        public ServerPlayer? GetPlayerByUsername(string username)
+        {
+            return Players.Where(x => x.Username == username).FirstOrDefault();
         }
     }
 
@@ -124,17 +134,17 @@ namespace Munita
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
         {
-            var playerCount = reader.GetInt();
+            //var playerCount = reader.GetInt();
             var currentPlayerPos = new Vector2(reader.GetFloat(), reader.GetFloat());
 
             ClientPlayer.NetUpdate(currentPlayerPos);
 
-            ClientEngine.PlayerPositions.Clear();
+            /*ClientEngine.PlayerPositions.Clear();
 
-            for (int i = 0; i < playerCount; i++)
+            for (int i = 1; i < playerCount; i++)
             {
                 ClientEngine.PlayerPositions.Add(new Vector2(reader.GetFloat(), reader.GetFloat()));
-            }
+            }*/
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader,
@@ -148,6 +158,7 @@ namespace Munita
 
         public void OnConnectionRequest(ConnectionRequest request)
         {
+
         }
     }
 }

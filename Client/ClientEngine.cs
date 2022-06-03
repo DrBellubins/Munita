@@ -56,6 +56,7 @@ namespace Munita
                 SimulationMaxLatency = 1500,
                 SimulateLatency = true,
                 IPv6Enabled = IPv6Mode.Disabled,
+                ReuseAddress = true
             };
 
             udpClient.Start();

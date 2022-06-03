@@ -70,8 +70,8 @@ namespace Munita
 
             IsRunning = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
 
-            //Position = Vector2.Lerp(lastPosition, networkPosition, 5.0f * deltaTime);
-            Position = networkPosition;
+            Position = Vector2.Lerp(lastPosition, networkPosition, 10.0f * deltaTime);
+            //Position = networkPosition;
 
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
 

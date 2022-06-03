@@ -39,6 +39,8 @@ namespace Munita
 
             udpListener.UdpServer = udpServer;
 
+            udpServer.ReuseAddress = true;
+
             udpServer.Start(25565);
 
             // Initialize
@@ -58,30 +60,33 @@ namespace Munita
                 {
                     for (int i = 0; i < udpListener.Players.Count; i++)
                     {
-                        Debug.Announce($"{udpListener.Players.Count}");
+                        var player = udpListener.GetPlayerByUsername(udpListener.Players[i].Username);
 
-                        udpListener.Players[i].Update(deltaTime);
-
-                        // Packet order:
-                        // Player count
-                        // Current player position
-                        // Other player positions
-                        var dataWriter = new NetDataWriter();
-                        dataWriter.Put(udpListener.Players.Count);
-                        dataWriter.Put(udpListener.Players[i].Position.X);
-                        dataWriter.Put(udpListener.Players[i].Position.Y);
-
-                        // TODO: Probably a better way of doing this...
-                        for (int ii = 0; ii < udpListener.Players.Count; ii++)
+                        if (player != null)
                         {
-                            dataWriter.Put(udpListener.Players[ii].Position.X);
-                            dataWriter.Put(udpListener.Players[ii].Position.Y);
+                            player.Update(deltaTime);
+
+                            // Packet order:
+                            // Player count
+                            // Current player position
+                            // Other player positions
+                            var dataWriter = new NetDataWriter();
+                            //dataWriter.Put(udpListener.Players.Count);
+                            dataWriter.Put(player.Position.X);
+                            dataWriter.Put(player.Position.Y);
+
+                            // TODO: Probably a better way of doing this...
+                            /*for (int ii = 0; ii < udpListener.Players.Count; ii++)
+                            {
+                                dataWriter.Put(udpListener.Players[ii].Position.X);
+                                dataWriter.Put(udpListener.Players[ii].Position.Y);
+                            }*/
+                            
+                            var peer = player.Peer;
+                            
+                            if (peer != null)
+                                peer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
                         }
-
-                        var peer = udpServer.GetPeerById(i);
-
-                        if (peer != null)
-                            peer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
                     }
                 }
 
