@@ -20,6 +20,8 @@ namespace Munita
         {
             _listenOn = endpoint;
             Client = new System.Net.Sockets.UdpClient(_listenOn);
+
+            Client.Client.IOControl(-1744830452, new byte[] { 0, 0, 0, 0 }, null);
         }
 
         public void Send(string code, string message, IPEndPoint endpoint)

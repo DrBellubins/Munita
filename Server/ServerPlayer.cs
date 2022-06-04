@@ -23,7 +23,6 @@ namespace Munita
 
         // Clientside data
         public System.Net.IPEndPoint EndPoint;
-        public string Username;
         public bool IsRunning;
         public Vector2 MoveDirection;
 

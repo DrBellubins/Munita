@@ -17,7 +17,7 @@ namespace Munita
         public bool IsRunning;
         public bool IsPaused;
 
-        public List<ServerPlayer> Players = new List<ServerPlayer>();
+        public Dictionary <string, ServerPlayer> Players = new Dictionary<string, ServerPlayer>();
 
         public async void Initialize()
         {
@@ -32,7 +32,6 @@ namespace Munita
             IsRunning = true;
 
             // Networking
-            // TODO: Rejoining crashes sockets...
             var task = Task.Factory.StartNew(async () =>
             {
                 while (IsRunning)
@@ -49,29 +48,35 @@ namespace Munita
                         {
                             if (buffer[1] == "joining")
                             {
-                                Debug.Announce($"A player named '{buffer[2]}' joined!");
-    
-                                var player = new ServerPlayer();
-                                player.Initialize();
-    
-                                player.EndPoint = received.Sender;
-                                player.Username = buffer[2];
-    
-                                Players.Add(player);
-    
+                                if (!Players.ContainsKey(buffer[2]))
+                                {
+                                    var player = new ServerPlayer();
+                                    player.Initialize();
+
+                                    player.EndPoint = received.Sender;
+
+                                    Players.Add(buffer[2], player);
+
+                                    Debug.Announce($"A new player named '{buffer[2]}' joined!");
+                                }
+                                else
+                                {
+                                    Debug.Announce($"'{buffer[2]}' rejoined!");
+                                }
+
                                 Server.Reply("joined", received.Sender);
                             }
 
                             if (buffer[1] == "PlayerUpdate")
-                            {
-                                var player = GetPlayerByUserName(buffer[2]);
+                            {   
+                                var player = Players[buffer[2]];
 
                                 if (player != null)
                                 {
                                     player.IsRunning = bool.Parse(buffer[3]);
                                     player.MoveDirection = Utils.UnpackVec2(buffer[4]);
 
-                                    Utils.s_SendPlayerUpdate(player.Position, player.EndPoint);
+                                    Utils.s_SendPlayerUpdate(player.Position, received.Sender);
                                 }
                             }
                         }
@@ -93,24 +98,27 @@ namespace Munita
                 
                 // Update
                 //world.Update();
-                
-                for (int i = 0; i < Players.Count; i++)
+
+                if (Players.Count > 0)
+                {
+                    foreach (var username in Players.Keys)
+                    {
+                        Players[username].Update(deltaTime);
+                    }
+                }
+
+                /*for (int i = 0; i < Players.Count; i++)
                 {
                     var player = Players[i];
 
                     player.Update(deltaTime);
-                }
+                }*/
 
                 deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
                 time += deltaTime;
 
                 previousTimer = currentTimer;
             }
-        }
-
-        public ServerPlayer? GetPlayerByUserName(string username)
-        {
-            return Players.Where(x => x.Username == username).FirstOrDefault();
         }
     }
 }
