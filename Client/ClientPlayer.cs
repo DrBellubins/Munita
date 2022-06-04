@@ -14,8 +14,8 @@ namespace Munita
         // Input
         public const float ZoomSpeed = 2.5f;
 
-        // Client info
-        public static string Username = "";
+        // Networking
+        public Vector2 NetworkPosition = Vector2.Zero;
 
         // Movement
         public bool IsRunning;
@@ -26,9 +26,6 @@ namespace Munita
         public float CameraZoom;
 
         private Vector2 lastPosition;
-
-        // Temporary
-        private static Vector2 networkPosition;
 
         public void Initialize()
         {
@@ -70,8 +67,8 @@ namespace Munita
 
             IsRunning = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
 
-            Position = Vector2.Lerp(lastPosition, networkPosition, 10.0f * deltaTime);
-            //Position = networkPosition;
+            //Position = Vector2.Lerp(lastPosition, NetworkPosition, 10.0f * deltaTime);
+            Position = NetworkPosition;
 
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
 
@@ -85,11 +82,6 @@ namespace Munita
         {
             //Raylib.DrawCircleV(networkPosition, 0.4f, Color.RED);
             Raylib.DrawCircleV(Position, 0.4f, Color.BLUE);
-        }
-
-        public static void NetUpdate(Vector2 pos)
-        {
-            networkPosition = pos;
         }
     }
 }

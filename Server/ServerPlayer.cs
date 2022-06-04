@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Numerics;
 
 using Raylib_cs;
-using LiteNetLib;
 
 namespace Munita
 {
@@ -23,7 +22,7 @@ namespace Munita
         public Vector2 Position;
 
         // Clientside data
-        public NetPeer Peer;
+        public System.Net.IPEndPoint EndPoint;
         public string Username;
         public bool IsRunning;
         public Vector2 MoveDirection;
@@ -31,9 +30,8 @@ namespace Munita
         private Vector2 lastPosition;
         private float currentSpeed;
 
-        public void Initialize(NetPeer peer)
+        public void Initialize()
         {
-            Peer = peer;
             Respawn();
         }
 
@@ -118,6 +116,8 @@ namespace Munita
         {
             Health = 100;
             Position = new Vector2(16f, 16f);
+
+            //Utils.s_SendPlayerUpdate(Position, EndPoint);
         }
     }
 }

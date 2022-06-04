@@ -5,11 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
 using System.Net;
-using System.Net.Sockets;
 
 using Raylib_cs;
-using LiteNetLib;
-using LiteNetLib.Utils;
 
 namespace Munita
 {
@@ -22,13 +19,18 @@ namespace Munita
         public const int ScreenHeight = 900;
 
         public static Font MainFont;
-        public static string ServerIP = "";
         public static List<Vector2> PlayerPositions = new List<Vector2>();
+
+        public static UdpClient Client = UdpClient.ConnectTo("127.0.0.1", 7777);
 
         public bool IsRunning;
         public bool IsPaused;
 
-        public void Initialize()
+        // Client stuff
+        public string Username = "";
+        public string ServerIP = "";
+
+        public async void Initialize()
         {
             Raylib.InitWindow(ScreenWidth, ScreenHeight, "Munita");
             Raylib.SetExitKey(KeyboardKey.KEY_Q);
@@ -42,31 +44,12 @@ namespace Munita
             var deltaTime = 0.0f;
 
             var previousTimer = DateTime.Now;
-            var currentTimer = DateTime.Now;
-
-            IsRunning = true;
-
-            // Networking
-            var udpListener = new MunitaClient();
-
-            udpListener.LoadConfig();
-
-            var udpClient = new NetManager(udpListener)
-            {
-                SimulationMaxLatency = 1500,
-                SimulateLatency = true,
-                IPv6Enabled = IPv6Mode.Disabled,
-                ReuseAddress = true
-            };
-
-            udpClient.Start();
-            udpClient.Connect(ServerIP, 25565, "munita-client777");
-
-            Console.WriteLine($"Connected to {ServerIP}:{udpClient.LocalPort}");
-
-            var dataWriter = new NetDataWriter();
+            var currentTimer = DateTime.Now;     
 
             // Initialize
+            IsRunning = true;
+            LoadConfig();
+
             var world = new World();
             world.Initialize(true);
             
@@ -74,6 +57,55 @@ namespace Munita
             player.Initialize();
 
             Debug.Initialize();
+
+            // Networking
+            var joined = false;
+
+            var task = Task.Factory.StartNew(async () =>
+            {
+                while (IsRunning)
+                {
+                    try
+                    {
+                        await Task.Delay(1000 / 20);
+
+                        if (!joined)
+                            Client.Reply("joining", Username);
+
+                        var received = await Client.Receive();
+                        var buffer = received.Message.Split("#");
+
+                        // Receive from server
+                        if (buffer[0] == "munitaClient777")
+                        {
+                            if (buffer[1] == "joined")
+                            {
+                                Debug.Announce("We joined!");
+
+                                // Start player updates
+                                Utils.c_SendPlayerUpdate(false, Vector2.Zero, Username);
+
+                                joined = true;
+                            }
+
+                            if (buffer[1] == "PlayerUpdate")
+                            {
+                                player.NetworkPosition = Utils.UnpackVec2(buffer[2]);
+                                Utils.c_SendPlayerUpdate(player.IsRunning, player.MoveDirection, Username);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Error(ex.ToString());
+                    }
+                }
+            });
+
+            if (task.Exception != null)
+            {
+                Debug.Error(task.Exception.ToString());
+            }
 
             while (IsRunning)
             {
@@ -83,18 +115,8 @@ namespace Munita
                     IsRunning = false;
                 
                 // Update
-                udpClient.PollEvents();
-
                 world.Update();
                 player.Update(deltaTime);
-
-                dataWriter.Reset();
-                dataWriter.Put(ClientPlayer.Username);
-                dataWriter.Put(player.IsRunning);
-                dataWriter.Put(player.MoveDirection.X);
-                dataWriter.Put(player.MoveDirection.Y);
-                
-                udpClient.FirstPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
 
                 // Draw
                 Raylib.BeginDrawing();
@@ -128,8 +150,40 @@ namespace Munita
                 previousTimer = currentTimer;
             }
 
-            udpClient.Stop();
             Raylib.CloseWindow();
+        }
+
+        public void LoadConfig()
+        {
+            var configPath = $"{Environment.CurrentDirectory}\\client.conf";
+
+            if (File.Exists(configPath))
+            {
+                Debug.Warning($"Client.conf already exists, loading.");
+
+                var configLines = File.ReadAllLines(configPath);
+
+                var usernameLineStr = configLines[0];
+                var usernameLineParseStr = usernameLineStr.Split("Username: ", 2, StringSplitOptions.RemoveEmptyEntries);
+
+                Username = usernameLineParseStr[0];
+
+                var ipLineStr = configLines[1];
+                var ipLineParseStr = ipLineStr.Split("IP: ", 2, StringSplitOptions.RemoveEmptyEntries);
+
+                ServerIP = ipLineParseStr[0];
+            }
+            else
+            {
+                using (var fs = new FileStream(configPath, FileMode.CreateNew))
+                {
+                    using (var sw = new StreamWriter(fs))
+                    {
+                        sw.WriteLine("Username: Player");
+                        sw.WriteLine("IP: 127.0.0.1");
+                    }
+                }
+            }
         }
     }
 }

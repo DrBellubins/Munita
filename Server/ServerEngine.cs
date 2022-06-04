@@ -5,23 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
 using System.Net;
-using System.Net.Sockets;
 
 using Raylib_cs;
-using LiteNetLib;
-using LiteNetLib.Utils;
 
 namespace Munita
 {
     public class ServerEngine
     {
-        public const int TicksPerSecond = 20;
-        public const int TickRate = 1000 / TicksPerSecond;
+        public static UdpServer Server = new UdpServer();
 
         public bool IsRunning;
         public bool IsPaused;
 
-        public void Initialize()
+        public List<ServerPlayer> Players = new List<ServerPlayer>();
+
+        public async void Initialize()
         {
             Debug.Announce("Server engine started!");
 
@@ -34,14 +32,56 @@ namespace Munita
             IsRunning = true;
 
             // Networking
-            var udpListener = new MunitaServer();
-            var udpServer = new NetManager(udpListener);
+            // TODO: Rejoining crashes sockets...
+            var task = Task.Factory.StartNew(async () =>
+            {
+                while (IsRunning)
+                {
+                    try
+                    {
+                        await Task.Delay(Utils.TickRate);
 
-            udpListener.UdpServer = udpServer;
+                        var received = await Server.Receive();
+                        var buffer = received.Message.Split("#");
+    
+                        // Receive from client
+                        if (buffer[0] == "munitaClient777")
+                        {
+                            if (buffer[1] == "joining")
+                            {
+                                Debug.Announce($"A player named '{buffer[2]}' joined!");
+    
+                                var player = new ServerPlayer();
+                                player.Initialize();
+    
+                                player.EndPoint = received.Sender;
+                                player.Username = buffer[2];
+    
+                                Players.Add(player);
+    
+                                Server.Reply("joined", received.Sender);
+                            }
 
-            udpServer.ReuseAddress = true;
+                            if (buffer[1] == "PlayerUpdate")
+                            {
+                                var player = GetPlayerByUserName(buffer[2]);
 
-            udpServer.Start(25565);
+                                if (player != null)
+                                {
+                                    player.IsRunning = bool.Parse(buffer[3]);
+                                    player.MoveDirection = Utils.UnpackVec2(buffer[4]);
+
+                                    Utils.s_SendPlayerUpdate(player.Position, player.EndPoint);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Error(ex.ToString());
+                    }
+                }
+            });
 
             // Initialize
             var world = new World();
@@ -52,53 +92,25 @@ namespace Munita
                 currentTimer = DateTime.Now;
                 
                 // Update
-                udpServer.PollEvents();
-
-                world.Update();
-
-                if (udpServer.ConnectedPeersCount > 0)
+                //world.Update();
+                
+                for (int i = 0; i < Players.Count; i++)
                 {
-                    for (int i = 0; i < udpListener.Players.Count; i++)
-                    {
-                        var player = udpListener.GetPlayerByUsername(udpListener.Players[i].Username);
+                    var player = Players[i];
 
-                        if (player != null)
-                        {
-                            player.Update(deltaTime);
-
-                            // Packet order:
-                            // Player count
-                            // Current player position
-                            // Other player positions
-                            var dataWriter = new NetDataWriter();
-                            //dataWriter.Put(udpListener.Players.Count);
-                            dataWriter.Put(player.Position.X);
-                            dataWriter.Put(player.Position.Y);
-
-                            // TODO: Probably a better way of doing this...
-                            /*for (int ii = 0; ii < udpListener.Players.Count; ii++)
-                            {
-                                dataWriter.Put(udpListener.Players[ii].Position.X);
-                                dataWriter.Put(udpListener.Players[ii].Position.Y);
-                            }*/
-                            
-                            var peer = player.Peer;
-                            
-                            if (peer != null)
-                                peer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
-                        }
-                    }
+                    player.Update(deltaTime);
                 }
-
-                Thread.Sleep(TickRate);
 
                 deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
                 time += deltaTime;
 
                 previousTimer = currentTimer;
             }
+        }
 
-            udpServer.Stop();
+        public ServerPlayer? GetPlayerByUserName(string username)
+        {
+            return Players.Where(x => x.Username == username).FirstOrDefault();
         }
     }
 }
