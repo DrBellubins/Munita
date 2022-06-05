@@ -10,6 +10,7 @@ using Raylib_cs;
 
 namespace Munita
 {
+    // TODO: Server closes when second player (even with diff username) joins
     public class ServerEngine
     {
         public static UdpServer Server = new UdpServer();
@@ -106,13 +107,6 @@ namespace Munita
                         Players[username].Update(deltaTime);
                     }
                 }
-
-                /*for (int i = 0; i < Players.Count; i++)
-                {
-                    var player = Players[i];
-
-                    player.Update(deltaTime);
-                }*/
 
                 deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;
                 time += deltaTime;

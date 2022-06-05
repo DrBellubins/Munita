@@ -46,24 +46,16 @@ namespace Munita
 
             // Input
             if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
-            {
                 MoveDirection.Y -= 1f;
-            }
 
             if (Raylib.IsKeyDown(KeyboardKey.KEY_S))
-            {
                 MoveDirection.Y += 1f;
-            }
 
             if (Raylib.IsKeyDown(KeyboardKey.KEY_A))
-            {
                 MoveDirection.X -= 1f;
-            }
             
             if (Raylib.IsKeyDown(KeyboardKey.KEY_D))
-            {
                 MoveDirection.X += 1f;
-            }
 
             IsRunning = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
 
