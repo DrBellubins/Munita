@@ -118,5 +118,11 @@ namespace Munita
 
             //Utils.s_SendPlayerUpdate(Position, EndPoint);
         }
+
+        public void LoadPlayer(int health, Vector2 pos)
+        {
+            Health = 100;
+            Position = pos;
+        }
     }
 }

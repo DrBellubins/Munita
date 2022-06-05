@@ -28,5 +28,10 @@ namespace Munita
         {
             get { return $"{Environment.CurrentDirectory}\\Assets\\Tilesets"; }
         }
+
+        public static string ServerWorldPath
+        {
+            get { return $"{Environment.CurrentDirectory}\\World"; }
+        }
     }
 }

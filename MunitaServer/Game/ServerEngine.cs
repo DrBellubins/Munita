@@ -10,7 +10,6 @@ using Raylib_cs;
 
 namespace Munita
 {
-    // TODO: Server closes when second player (even with diff username) joins
     public class ServerEngine
     {
         public static UdpServer Server = new UdpServer();
@@ -81,11 +80,12 @@ namespace Munita
 
                                     var otherPlayerPositions = new List<Vector2>();
 
-                                    for (int i = 1; i < Players.Count; i++)
+                                    for (int i = 0; i < Players.Count; i++)
                                     {
                                         var username = Players.ElementAt(i).Key;
 
-                                        otherPlayerPositions.Add(Players[username].Position);
+                                        if (username != buffer[2])
+                                            otherPlayerPositions.Add(Players[username].Position);
                                     }
 
                                     Utils.SendOtherPlayerPos(otherPlayerPositions.ToArray(), received.Sender);
@@ -129,6 +129,49 @@ namespace Munita
                 time += deltaTime;
 
                 previousTimer = currentTimer;
+            }
+        }
+
+        public void SaveWorldData()
+        {
+            if (!Directory.Exists(GamePaths.ServerWorldPath))
+                Directory.CreateDirectory(GamePaths.ServerWorldPath);
+
+            using (var stream = File.Open($"{GamePaths.ServerWorldPath}\\Players.dat", FileMode.Create))
+            {
+                using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+                {
+                    writer.Write(Players.Count);
+
+                    for (int i = 0; i < Players.Count; i++)
+                    {
+                        var playerPair = Players.ElementAt(i);
+
+                        writer.Write(playerPair.Key); // Username
+                        writer.Write(playerPair.Value.Position.X);
+                        writer.Write(playerPair.Value.Position.Y);
+                    }
+                }
+            }
+        }
+
+        public void LoadWorldData()
+        {
+            var fileName = $"{GamePaths.ServerWorldPath}\\Players.dat";
+
+            using (var stream = File.Open(fileName, FileMode.Open))
+            {
+                using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
+                {
+                    var playerCount = reader.ReadInt32();
+
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        var player = new ServerPlayer();
+
+                        player.LoadPlayer(100, new Vector2(reader.ReadSingle(), reader.ReadSingle()));
+                    }
+                }
             }
         }
     }

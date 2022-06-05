@@ -76,29 +76,12 @@ namespace Munita
             // Other players
             for (int i = 0; i < ClientEngine.OtherPlayerPositions.Count; i++)
             {
-                var currentPos = ClientEngine.OtherPlayerPositions[i];        
-
                 if (ClientEngine.OtherPlayerPositions.Count == PrevOtherPlayerPositions.Count)
-                {
-                    var previousPos = PrevOtherPlayerPositions[i];
-
-                    // TODO: Does not lerp at all, most likely currentPos & previousPos
-                    // are identical somehow
-                    var otherPlayerPos = Vector2.Lerp(currentPos, previousPos, 0.5f * deltaTime);
-
-                    Debug.DrawText($"({currentPos.X}, {currentPos}) - ({previousPos.X}, {previousPos})");
-
-                    Raylib.DrawCircleV(otherPlayerPos, 0.4f, Color.GREEN);
-                }
+                    Raylib.DrawCircleV(ClientEngine.OtherPlayerPositions[i], 0.4f, Color.GREEN);
             }
 
             //Raylib.DrawCircleV(networkPosition, 0.4f, Color.RED);
             Raylib.DrawCircleV(Position, 0.4f, Color.BLUE);
-
-            PrevOtherPlayerPositions.Clear();
-
-            for (int i = 0; i < ClientEngine.OtherPlayerPositions.Count; i++)
-                PrevOtherPlayerPositions.Add(ClientEngine.OtherPlayerPositions[i]);
         }
     }
 }
