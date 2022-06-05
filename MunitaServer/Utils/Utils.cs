@@ -17,11 +17,21 @@ namespace Munita
         public const int TickRate = 1000 / TicksPerSecond;
 
         // Packet macros
-        // s_ is from server to client
-        // c_ is from client to server
-        public static void s_SendPlayerUpdate(Vector2 pos, IPEndPoint endPoint)
+        public static void SendPlayerPosition(Vector2 pos, IPEndPoint endPoint)
         {
             ServerEngine.Server.Send("PlayerUpdate", PackVec2(pos), endPoint);
+        }
+
+        public static void SendOtherPlayerPos(Vector2[] positions, IPEndPoint endPoint)
+        {
+            var playerPositions = "";
+
+            for (int i = 0; i < positions.Length; i++)
+            {
+                playerPositions += $"{PackVec2(positions[i])}^";
+            }
+
+            ServerEngine.Server.Send("OtherPlayerUpdate", $"{positions.Length}#{playerPositions}", endPoint);
         }
 
         // Packet parsing

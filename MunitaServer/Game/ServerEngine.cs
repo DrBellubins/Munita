@@ -77,7 +77,18 @@ namespace Munita
                                     player.IsRunning = bool.Parse(buffer[3]);
                                     player.MoveDirection = Utils.UnpackVec2(buffer[4]);
 
-                                    Utils.s_SendPlayerUpdate(player.Position, received.Sender);
+                                    Utils.SendPlayerPosition(player.Position, received.Sender);
+
+                                    var otherPlayerPositions = new List<Vector2>();
+
+                                    for (int i = 1; i < Players.Count; i++)
+                                    {
+                                        var username = Players.ElementAt(i).Key;
+
+                                        otherPlayerPositions.Add(Players[username].Position);
+                                    }
+
+                                    Utils.SendOtherPlayerPos(otherPlayerPositions.ToArray(), received.Sender);
                                 }
                             }
                         }
@@ -102,10 +113,16 @@ namespace Munita
 
                 if (Players.Count > 0)
                 {
-                    foreach (var username in Players.Keys)
+                    for (int i = 0; i < Players.Count; i++)
                     {
+                        var username = Players.ElementAt(i).Key;
                         Players[username].Update(deltaTime);
                     }
+
+                    /*foreach (var username in Players.Keys.ToList())
+                    {
+                        Players[username].Update(deltaTime);
+                    }*/
                 }
 
                 deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;

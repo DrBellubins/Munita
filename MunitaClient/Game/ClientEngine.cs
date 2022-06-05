@@ -19,7 +19,9 @@ namespace Munita
         public const int ScreenHeight = 900;
 
         public static Font MainFont;
-        public static List<Vector2> PlayerPositions = new List<Vector2>();
+
+        // Network stuff
+        public static List<Vector2> OtherPlayerPositions = new List<Vector2>();
 
         public static UdpClient Client = UdpClient.ConnectTo("127.0.0.1", 7777);
 
@@ -83,7 +85,7 @@ namespace Munita
                                 Debug.Announce("We joined!");
 
                                 // Start player updates
-                                Utils.c_SendPlayerUpdate(false, Vector2.Zero, Username);
+                                Utils.SendPlayerUpdate(false, Vector2.Zero, Username);
 
                                 joined = true;
                             }
@@ -91,7 +93,20 @@ namespace Munita
                             if (buffer[1] == "PlayerUpdate")
                             {
                                 player.NetworkPosition = Utils.UnpackVec2(buffer[2]);
-                                Utils.c_SendPlayerUpdate(player.IsRunning, player.MoveDirection, Username);
+                                Utils.SendPlayerUpdate(player.IsRunning, player.MoveDirection, Username);
+                            }
+
+                            if (buffer[1] == "OtherPlayerUpdate")
+                            {
+                                var playerCount = int.Parse(buffer[2]);
+                                var positionsStr = buffer[3].Split("^");
+
+                                OtherPlayerPositions.Clear();
+
+                                for (int i = 0; i < playerCount; i++)
+                                {
+                                    OtherPlayerPositions.Add(Utils.UnpackVec2(positionsStr[i]));
+                                }
                             }
                         }
                     }
@@ -126,12 +141,12 @@ namespace Munita
 
                 world.Draw();
 
-                for (int i = 0; i < PlayerPositions.Count; i++)
+                for (int i = 0; i < OtherPlayerPositions.Count; i++)
                 {
-                    Raylib.DrawCircleV(PlayerPositions[i], 0.4f, Color.GREEN);
+                    Raylib.DrawCircleV(OtherPlayerPositions[i], 0.4f, Color.GREEN);
                 }
 
-                player.Draw();
+                player.Draw(deltaTime);
 
                 Raylib.EndMode2D();
 

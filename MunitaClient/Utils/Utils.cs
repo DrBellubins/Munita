@@ -17,9 +17,7 @@ namespace Munita
         public const int TickRate = 1000 / TicksPerSecond;
 
         // Packet macros
-        // s_ is from server to client
-        // c_ is from client to server
-        public static void c_SendPlayerUpdate(bool isRunning, Vector2 dir, string username)
+        public static void SendPlayerUpdate(bool isRunning, Vector2 dir, string username)
         {
             ClientEngine.Client.Send("PlayerUpdate", username, $"{isRunning}#{PackVec2(dir)}");
         }

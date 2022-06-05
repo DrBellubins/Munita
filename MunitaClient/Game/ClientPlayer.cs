@@ -16,6 +16,7 @@ namespace Munita
 
         // Networking
         public Vector2 NetworkPosition = Vector2.Zero;
+        public List<Vector2> PrevOtherPlayerPositions = new List<Vector2>();
 
         // Movement
         public bool IsRunning;
@@ -59,8 +60,8 @@ namespace Munita
 
             IsRunning = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
 
-            //Position = Vector2.Lerp(lastPosition, NetworkPosition, 10.0f * deltaTime);
-            Position = NetworkPosition;
+            Position = Vector2.Lerp(lastPosition, NetworkPosition, 10f * deltaTime);
+            //Position = NetworkPosition;
 
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
 
@@ -70,10 +71,34 @@ namespace Munita
             Camera.zoom = CameraZoom;
         }
 
-        public void Draw()
+        public void Draw(float deltaTime)
         {
+            // Other players
+            for (int i = 0; i < ClientEngine.OtherPlayerPositions.Count; i++)
+            {
+                var currentPos = ClientEngine.OtherPlayerPositions[i];        
+
+                if (ClientEngine.OtherPlayerPositions.Count == PrevOtherPlayerPositions.Count)
+                {
+                    var previousPos = PrevOtherPlayerPositions[i];
+
+                    // TODO: Does not lerp at all, most likely currentPos & previousPos
+                    // are identical somehow
+                    var otherPlayerPos = Vector2.Lerp(currentPos, previousPos, 0.5f * deltaTime);
+
+                    Debug.DrawText($"({currentPos.X}, {currentPos}) - ({previousPos.X}, {previousPos})");
+
+                    Raylib.DrawCircleV(otherPlayerPos, 0.4f, Color.GREEN);
+                }
+            }
+
             //Raylib.DrawCircleV(networkPosition, 0.4f, Color.RED);
             Raylib.DrawCircleV(Position, 0.4f, Color.BLUE);
+
+            PrevOtherPlayerPositions.Clear();
+
+            for (int i = 0; i < ClientEngine.OtherPlayerPositions.Count; i++)
+                PrevOtherPlayerPositions.Add(ClientEngine.OtherPlayerPositions[i]);
         }
     }
 }
