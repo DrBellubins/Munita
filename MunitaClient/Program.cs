@@ -6,7 +6,7 @@ namespace Munita
     {
         public static void Main(string[] args)
         {
-            var clientEngine = new ClientEngine();
+            var clientEngine = new Engine();
             clientEngine.Initialize();
         }
     }

@@ -12,7 +12,6 @@ namespace Munita
     public static class GameMath
     {
         private static uint xorRND;
-        public static uint xorSeed;
 
         private const double xorMaxRatio = 1.0 / uint.MaxValue;
 

@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
 	<Platforms>AnyCPU;x64</Platforms>
 	<IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+	<RootNamespace>Munita</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

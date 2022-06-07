@@ -9,14 +9,14 @@ using Raylib_cs;
 
 namespace Munita
 {
-    public class ClientPlayer
+    public class Player
     {
         // Input
         public const float ZoomSpeed = 2.5f;
 
         // Networking
-        public Vector2 NetworkPosition = Vector2.Zero;
-        public List<Vector2> PrevOtherPlayerPositions = new List<Vector2>();
+        public int ServerHealth = 0;
+        public Vector2 ServerPosition = Vector2.Zero;
 
         // Movement
         public bool IsRunning;
@@ -60,7 +60,7 @@ namespace Munita
 
             IsRunning = Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT);
 
-            Position = Vector2.Lerp(lastPosition, NetworkPosition, 10f * deltaTime);
+            Position = Vector2.Lerp(lastPosition, ServerPosition, 20f * deltaTime);
             //Position = NetworkPosition;
 
             Camera.target = Vector2.Lerp(Camera.target, Position, 3.5f * deltaTime);
@@ -74,14 +74,18 @@ namespace Munita
         public void Draw(float deltaTime)
         {
             // Other players
-            for (int i = 0; i < ClientEngine.OtherPlayerPositions.Count; i++)
-            {
-                if (ClientEngine.OtherPlayerPositions.Count == PrevOtherPlayerPositions.Count)
-                    Raylib.DrawCircleV(ClientEngine.OtherPlayerPositions[i], 0.4f, Color.GREEN);
-            }
+            for (int i = 0; i < Engine.OtherPlayerPositions.Count; i++)
+                Raylib.DrawCircleV(Engine.OtherPlayerPositions[i], 0.4f, Color.GREEN);
 
-            //Raylib.DrawCircleV(networkPosition, 0.4f, Color.RED);
             Raylib.DrawCircleV(Position, 0.4f, Color.BLUE);
+
+            // Health bar
+            //UI.DrawTextWorld(, new Vector2(Position.X, Position.Y), 0.5f);
+        }
+
+        public void UIDraw()
+        {
+            UI.DrawText($"Health: {ServerHealth}", new Vector2(UI.TopRight.X - 150f, UI.TopRight.Y));
         }
     }
 }

@@ -13,13 +13,10 @@ namespace Munita
 {
     public class Utils
     {
-        public const int TicksPerSecond = 20;
-        public const int TickRate = 1000 / TicksPerSecond;
-
         // Packet macros
-        public static void SendPlayerPosition(Vector2 pos, IPEndPoint endPoint)
+        public static void SendPlayerUpdate(int health, Vector2 pos, IPEndPoint endPoint)
         {
-            ServerEngine.Server.Send("PlayerUpdate", PackVec2(pos), endPoint);
+            Engine.Server.Send("PlayerUpdate", $"{health}#{PackVec2(pos)}", endPoint);
         }
 
         public static void SendOtherPlayerPos(Vector2[] positions, IPEndPoint endPoint)
@@ -31,7 +28,7 @@ namespace Munita
                 playerPositions += $"{PackVec2(positions[i])}^";
             }
 
-            ServerEngine.Server.Send("OtherPlayerUpdate", $"{positions.Length}#{playerPositions}", endPoint);
+            Engine.Server.Send("OtherPlayerUpdate", $"{positions.Length}#{playerPositions}", endPoint);
         }
 
         // Packet parsing

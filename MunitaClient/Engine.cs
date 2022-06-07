@@ -10,7 +10,7 @@ using Raylib_cs;
 
 namespace Munita
 {
-    public class ClientEngine
+    public class Engine
     {
         public const int FPS = 60;
         public const float FrameTimestep = 1.0f / (float)FPS;
@@ -55,7 +55,7 @@ namespace Munita
             var world = new World();
             world.Initialize(true);
             
-            var player = new ClientPlayer();
+            var player = new Player();
             player.Initialize();
 
             Debug.Initialize();
@@ -69,7 +69,7 @@ namespace Munita
                 {
                     try
                     {
-                        await Task.Delay(1000 / 20);
+                        await Task.Delay(Constants.TickRate);
 
                         if (!joined)
                             Client.Reply("joining", Username);
@@ -92,7 +92,8 @@ namespace Munita
 
                             if (buffer[1] == "PlayerUpdate")
                             {
-                                player.NetworkPosition = Utils.UnpackVec2(buffer[2]);
+                                player.ServerHealth = int.Parse(buffer[2]);
+                                player.ServerPosition = Utils.UnpackVec2(buffer[3]);
                                 Utils.SendPlayerUpdate(player.IsRunning, player.MoveDirection, Username);
                             }
 
@@ -101,11 +102,14 @@ namespace Munita
                                 var playerCount = int.Parse(buffer[2]);
                                 var positionsStr = buffer[3].Split("^");
 
-                                OtherPlayerPositions.Clear();
+                                //OtherPlayerPositions.Clear();
 
                                 for (int i = 0; i < playerCount; i++)
                                 {
-                                    OtherPlayerPositions.Add(Utils.UnpackVec2(positionsStr[i]));
+                                    if (OtherPlayerPositions.Count < playerCount)
+                                        OtherPlayerPositions.Add(Utils.UnpackVec2(positionsStr[i]));
+                                    else
+                                        OtherPlayerPositions[i] = Utils.UnpackVec2(positionsStr[i]);
                                 }
                             }
                         }
@@ -141,6 +145,9 @@ namespace Munita
 
                 world.Draw();
 
+                // TEST ENEMY
+                Raylib.DrawCircleV(new Vector2(14f, 14f), 0.4f, Color.YELLOW);
+
                 for (int i = 0; i < OtherPlayerPositions.Count; i++)
                 {
                     Raylib.DrawCircleV(OtherPlayerPositions[i], 0.4f, Color.GREEN);
@@ -149,6 +156,8 @@ namespace Munita
                 player.Draw(deltaTime);
 
                 Raylib.EndMode2D();
+
+                player.UIDraw();
 
                 Debug.Draw(time, deltaTime, player.Position);
 

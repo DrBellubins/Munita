@@ -9,7 +9,7 @@ using Raylib_cs;
 
 namespace Munita
 {
-    public class ServerPlayer
+    public class Player
     {
         // Movement
         public const float WalkSpeed = 1.45f;
@@ -17,7 +17,7 @@ namespace Munita
 
         public const float Dampening = 17.0f;
 
-        public int Health { get; private set; }
+        public int Health { get; set; }
 
         public Vector2 Position;
 
@@ -117,12 +117,6 @@ namespace Munita
             Position = new Vector2(16f, 16f);
 
             //Utils.s_SendPlayerUpdate(Position, EndPoint);
-        }
-
-        public void LoadPlayer(int health, Vector2 pos)
-        {
-            Health = 100;
-            Position = pos;
         }
     }
 }

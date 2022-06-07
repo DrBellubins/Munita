@@ -19,7 +19,7 @@ namespace Munita
         // Packet macros
         public static void SendPlayerUpdate(bool isRunning, Vector2 dir, string username)
         {
-            ClientEngine.Client.Send("PlayerUpdate", username, $"{isRunning}#{PackVec2(dir)}");
+            Engine.Client.Send("PlayerUpdate", username, $"{isRunning}#{PackVec2(dir)}");
         }
 
         // Packet parsing

@@ -10,14 +10,13 @@ using Raylib_cs;
 
 namespace Munita
 {
-    public class ServerEngine
+    public class Engine
     {
         public static UdpServer Server = new UdpServer();
+        public static Dictionary<string, Player> Players = new Dictionary<string, Player>();
 
         public bool IsRunning;
         public bool IsPaused;
-
-        public Dictionary <string, ServerPlayer> Players = new Dictionary<string, ServerPlayer>();
 
         public async void Initialize()
         {
@@ -31,6 +30,18 @@ namespace Munita
 
             IsRunning = true;
 
+            // Initialize
+            GameMath.InitXorRNG();
+
+            var world = new World();
+            world.Initialize(false);
+
+            // TEMPORARY
+            var testMob = new TestMob();
+            testMob.Initialize();
+
+            testMob.Spawn(new Vector2(14f, 14f));
+
             // Networking
             var task = Task.Factory.StartNew(async () =>
             {
@@ -38,11 +49,11 @@ namespace Munita
                 {
                     try
                     {
-                        await Task.Delay(Utils.TickRate);
+                        await Task.Delay(Constants.TickRate);
 
                         var received = await Server.Receive();
                         var buffer = received.Message.Split("#");
-    
+
                         // Receive from client
                         if (buffer[0] == "munitaClient777")
                         {
@@ -50,7 +61,7 @@ namespace Munita
                             {
                                 if (!Players.ContainsKey(buffer[2]))
                                 {
-                                    var player = new ServerPlayer();
+                                    var player = new Player();
                                     player.Initialize();
 
                                     player.EndPoint = received.Sender;
@@ -68,7 +79,7 @@ namespace Munita
                             }
 
                             if (buffer[1] == "PlayerUpdate")
-                            {   
+                            {
                                 var player = Players[buffer[2]];
 
                                 if (player != null)
@@ -76,7 +87,7 @@ namespace Munita
                                     player.IsRunning = bool.Parse(buffer[3]);
                                     player.MoveDirection = Utils.UnpackVec2(buffer[4]);
 
-                                    Utils.SendPlayerPosition(player.Position, received.Sender);
+                                    Utils.SendPlayerUpdate(player.Health, player.Position, received.Sender);
 
                                     var otherPlayerPositions = new List<Vector2>();
 
@@ -100,16 +111,13 @@ namespace Munita
                 }
             });
 
-            // Initialize
-            var world = new World();
-            world.Initialize(false);
-
             while (IsRunning)
             {
                 currentTimer = DateTime.Now;
-                
+
                 // Update
                 //world.Update();
+                testMob.Update(time, deltaTime);
 
                 if (Players.Count > 0)
                 {
@@ -148,6 +156,7 @@ namespace Munita
                         var playerPair = Players.ElementAt(i);
 
                         writer.Write(playerPair.Key); // Username
+                        writer.Write(playerPair.Value.Health);
                         writer.Write(playerPair.Value.Position.X);
                         writer.Write(playerPair.Value.Position.Y);
                     }
@@ -167,9 +176,11 @@ namespace Munita
 
                     for (int i = 0; i < playerCount; i++)
                     {
-                        var player = new ServerPlayer();
+                        var player = new Player();
+                        var username = reader.ReadString();
 
-                        player.LoadPlayer(100, new Vector2(reader.ReadSingle(), reader.ReadSingle()));
+                        player.Health = reader.ReadInt32();
+                        player.Position = new Vector2(reader.ReadSingle(), reader.ReadSingle());
                     }
                 }
             }
