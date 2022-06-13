@@ -11,7 +11,7 @@ namespace Munita
 {
     public static class GameMath
     {
-        private static uint xorRND;
+        /*private static uint xorRND;
 
         private const double xorMaxRatio = 1.0 / uint.MaxValue;
 
@@ -40,7 +40,7 @@ namespace Munita
         {
             return new Color((int)(GetXorFloat() * 255f), (int)(GetXorFloat() * 255f),
                 (int)(GetXorFloat() * 255f), alpha);
-        }
+        }*/
 
         public static string CreateMD5(string input)
         {

@@ -31,7 +31,8 @@ namespace Munita
             IsRunning = true;
 
             // Initialize
-            GameMath.InitXorRNG();
+            //GameMath.InitXorRNG();
+            NetRandom.Initialize(777);
 
             var world = new World();
             world.Initialize(false);
@@ -40,7 +41,7 @@ namespace Munita
             var testMob = new TestMob();
             testMob.Initialize();
 
-            testMob.Spawn(new Vector2(14f, 14f));
+            testMob.Spawn(new Vector2(17f, 14f));
 
             // Networking
             var task = Task.Factory.StartNew(async () =>
@@ -84,22 +85,32 @@ namespace Munita
 
                                 if (player != null)
                                 {
+                                    // Current player
                                     player.IsRunning = bool.Parse(buffer[3]);
                                     player.MoveDirection = Utils.UnpackVec2(buffer[4]);
 
                                     Utils.SendPlayerUpdate(player.Health, player.Position, received.Sender);
 
+                                    // Other players
                                     var otherPlayerPositions = new List<Vector2>();
 
                                     for (int i = 0; i < Players.Count; i++)
                                     {
                                         var username = Players.ElementAt(i).Key;
 
-                                        if (username != buffer[2])
+                                        if (username != buffer[2]) // Do not add current player
                                             otherPlayerPositions.Add(Players[username].Position);
                                     }
 
                                     Utils.SendOtherPlayerPos(otherPlayerPositions.ToArray(), received.Sender);
+
+                                    // Mobs
+                                    var mobPositions = new List<Vector2>();
+
+                                    for (int i = 0; i < Mob.MobsList.Count; i++)
+                                        mobPositions.Add(Mob.MobsList[i].Position);
+
+                                    Utils.SendMobPos(mobPositions.ToArray(), received.Sender);
                                 }
                             }
                         }
@@ -116,8 +127,8 @@ namespace Munita
                 currentTimer = DateTime.Now;
 
                 // Update
-                //world.Update();
-                testMob.Update(time, deltaTime);
+                for (int i = 0; i < Mob.MobsList.Count; i++)
+                    Mob.MobsList[i].Update(time, deltaTime);
 
                 if (Players.Count > 0)
                 {
@@ -126,11 +137,6 @@ namespace Munita
                         var username = Players.ElementAt(i).Key;
                         Players[username].Update(deltaTime);
                     }
-
-                    /*foreach (var username in Players.Keys.ToList())
-                    {
-                        Players[username].Update(deltaTime);
-                    }*/
                 }
 
                 deltaTime = (currentTimer.Ticks - previousTimer.Ticks) / 10000000f;

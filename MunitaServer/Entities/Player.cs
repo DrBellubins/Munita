@@ -53,9 +53,10 @@ namespace Munita
 
             for (int i = 0; i < World.WallCols.Count; i++)
             {
-                var inBounds = Raylib.CheckCollisionCircleRec(Position, 5f, World.WallCols[i]);
+                var wallPos = new Vector2(World.WallCols[i].x, World.WallCols[i].y);
+                var distance = Vector2.Distance(Position, wallPos);
 
-                if (inBounds)
+                if (distance < 4f)
                 {
                     // Not sure why this needs to be offset
                     var checkPos = Position - new Vector2(0.5f, 0.5f);
@@ -78,9 +79,10 @@ namespace Munita
 
             for (int i = 0; i < World.WallCols.Count; i++)
             {
-                var inBounds = Raylib.CheckCollisionCircleRec(Position, 5f, World.WallCols[i]);
+                var wallPos = new Vector2(World.WallCols[i].x, World.WallCols[i].y);
+                var distance = Vector2.Distance(Position, wallPos);
 
-                if (inBounds)
+                if (distance < 4f)
                 {
                     var checkPos = Position - new Vector2(0.5f, 0.5f);
                     var isCollidingY = Raylib.CheckCollisionCircleRec(checkPos, 0.4f, World.WallCols[i]);
@@ -115,8 +117,6 @@ namespace Munita
         {
             Health = 100;
             Position = new Vector2(16f, 16f);
-
-            //Utils.s_SendPlayerUpdate(Position, EndPoint);
         }
     }
 }

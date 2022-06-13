@@ -24,11 +24,19 @@ namespace Munita
             var playerPositions = "";
 
             for (int i = 0; i < positions.Length; i++)
-            {
                 playerPositions += $"{PackVec2(positions[i])}^";
-            }
 
             Engine.Server.Send("OtherPlayerUpdate", $"{positions.Length}#{playerPositions}", endPoint);
+        }
+
+        public static void SendMobPos(Vector2[] positions, IPEndPoint endPoint)
+        {
+            var mobPositions = "";
+
+            for (int i = 0; i < positions.Length; i++)
+                mobPositions += $"{PackVec2(positions[i])}^";
+
+            Engine.Server.Send("MobUpdate", $"{positions.Length}#{mobPositions}", endPoint);
         }
 
         // Packet parsing

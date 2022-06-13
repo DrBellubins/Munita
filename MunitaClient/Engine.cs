@@ -22,6 +22,7 @@ namespace Munita
 
         // Network stuff
         public static List<Vector2> OtherPlayerPositions = new List<Vector2>();
+        public static List<Vector2> MobPositions = new List<Vector2>();
 
         public static UdpClient Client = UdpClient.ConnectTo("127.0.0.1", 7777);
 
@@ -102,14 +103,26 @@ namespace Munita
                                 var playerCount = int.Parse(buffer[2]);
                                 var positionsStr = buffer[3].Split("^");
 
-                                //OtherPlayerPositions.Clear();
-
                                 for (int i = 0; i < playerCount; i++)
                                 {
                                     if (OtherPlayerPositions.Count < playerCount)
                                         OtherPlayerPositions.Add(Utils.UnpackVec2(positionsStr[i]));
                                     else
                                         OtherPlayerPositions[i] = Utils.UnpackVec2(positionsStr[i]);
+                                }
+                            }
+
+                            if (buffer[1] == "MobUpdate")
+                            {
+                                var mobCount = int.Parse(buffer[2]);
+                                var positionsStr = buffer[3].Split("^");
+
+                                for (int i = 0; i < mobCount; i++)
+                                {
+                                    if (MobPositions.Count < mobCount)
+                                        MobPositions.Add(Utils.UnpackVec2(positionsStr[i]));
+                                    else
+                                        MobPositions[i] = Utils.UnpackVec2(positionsStr[i]);
                                 }
                             }
                         }
@@ -145,13 +158,13 @@ namespace Munita
 
                 world.Draw();
 
-                // TEST ENEMY
-                Raylib.DrawCircleV(new Vector2(14f, 14f), 0.4f, Color.YELLOW);
+                // Mobs
+                for (int i = 0; i < MobPositions.Count; i++)
+                    Raylib.DrawCircleV(MobPositions[i], 0.4f, Color.YELLOW);
 
+                // Other players
                 for (int i = 0; i < OtherPlayerPositions.Count; i++)
-                {
                     Raylib.DrawCircleV(OtherPlayerPositions[i], 0.4f, Color.GREEN);
-                }
 
                 player.Draw(deltaTime);
 

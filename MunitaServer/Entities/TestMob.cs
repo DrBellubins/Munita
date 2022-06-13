@@ -16,6 +16,7 @@ namespace Munita
             base.Initialize();
 
             // Mob settings
+            MoveSpeed = 2.5f;
             MinMaxDamage = new Vector2(10f, 20f);
         }
 
